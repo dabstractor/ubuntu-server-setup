@@ -21,7 +21,17 @@ case "${1:-}" in
             echo "VM not found. Starting new VM..."
             "$0" start
         fi
-        multipass shell "$VM_NAME"
+
+        # Get VM IP for SSH with agent forwarding
+        VM_IP=$(multipass info "$VM_NAME" | grep IPv4 | awk '{print $2}')
+
+        if [ -n "$VM_IP" ]; then
+            echo "Connecting with SSH agent forwarding..."
+            ssh -A ubuntu@"$VM_IP"
+        else
+            echo "Could not get VM IP, falling back to multipass shell..."
+            multipass shell "$VM_NAME"
+        fi
         ;;
 
     transfer|copy)
